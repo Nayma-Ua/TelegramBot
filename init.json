@@ -1,0 +1,9 @@
+{
+  "bot_name": "MyBot",
+  "access_token": "112*****:***********************************",
+  "host": false,
+  "port": false,
+  "data": {
+    "pause": 0.1
+  }
+}

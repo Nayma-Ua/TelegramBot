@@ -1,5 +1,10 @@
-from app.reqBot import Bot
-bot = Bot(name="BotHelper", token="")
+from app import Basic
+bot = Basic()
+
+bot.include([
+  "modules.test",
+  ["modules.test", "Test"]
+])
 
 def start(data, api):
   if data["message_text"] == "/start":
@@ -18,9 +23,8 @@ def photo(data, api):
     api.sendPhoto(data["chat_id"], "files/photo.jpg")
 
 def file(data, api):
-  print(data)
   if data["message_text"] == "/file":
     api.sendDocument(data["chat_id"], "files/file.txt")
 
-bot.include(start, help, audio, photo, file)
+bot.add(start, help, audio, photo, file)
 bot.start()
