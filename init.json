@@ -1,6 +1,6 @@
 {
-  "bot_name": "MyBot",
-  "access_token": "112*****:***********************************",
+  "bot_name": "BotName",
+  "access_token": "You token",
   "host": false,
   "port": false,
   "data": {

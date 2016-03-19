@@ -1,10 +1,6 @@
 from app import Basic
-bot = Basic()
 
-bot.include([
-  "modules.test",
-  ["modules.test", "Test"]
-])
+bot = Basic()
 
 def start(data, api):
   if data["message_text"] == "/start":
@@ -20,7 +16,7 @@ def audio(data, api):
 
 def photo(data, api):
   if data["message_text"] == "/photo":
-    api.sendPhoto(data["chat_id"], "files/photo.jpg")
+    api.sendPhoto(data["chat_id"], "files/photo1.jpg")
 
 def file(data, api):
   if data["message_text"] == "/file":

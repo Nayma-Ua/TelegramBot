@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TelegramBot - Docs</title>
+    <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      font-family: verdana;
+      background: #ffffff;
+    }
+    main {
+      width: 800px;
+      margin: 100px auto;
+      background: #f3f3f3;
+      padding: 5px;
+    }
+    main > #block {
+      margin-top: 15px;
+      padding: 0px 5px 10px 5px;
+      border-bottom: 2px solid #d9d9d9;
+    }
+    p {
+      padding: 5px;
+    }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="block">
+      <h1 style="text-align: center;">TelegramBot - Docs</h1>
+      </div>
+
+      <div id="block">
+        <h3>Быстрый старт</h3>
+        <p>Для того что-бы запустить своего бота вам нужно заполнить некоторые данные в файле "init.json"</p>
+        <pre class="prettyprint"><code class="language-json">
+{
+  "bot_name": "BotName",
+  "access_token": "You Token",
+  "host": false,
+  "port": false,
+  "data": {
+    "pause": 0.1
+  }
+}
+        </code></pre>
+        <p>
+          "bot_name" - имя вашего бота<br>
+          "access_token" - токен для работы с api<br>
+          "host" - ip адрес сервера(Если вы не используете WebHook, то данные можно и не заполнять)<br>
+          "port" - port хост сервера(Если вы не используете WebHook, то данные можно и не заполнять)<br>
+          "data" - разные хранимые данные<br>
+          "pause" - задержка обращения к серверу<br>
+        </p>
+        <p>После заполнения данных можете запустить файл "main.py"</p>
+      </div>
+      <div id="block">
+        <h3>Настройка бота</h3>
+        <p>
+          Откроем файл "main.py" в текстовом редакторе.<br>
+          Перед нами должен быть примерно такой код:
+        </p>
+        <pre class="prettyprint"><code class="language-python">
+from app import Basic
+
+bot = Basic()
+
+def start(data, api):
+  if data["message_text"] == "/start":
+    api.sendMessage(data["chat_id"], "Write /help to get information with me!")
+
+def help(data, api):
+  if data["message_text"] == "/help":
+    api.sendMessage(data["chat_id"], "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document")
+
+def audio(data, api):
+  if data["message_text"] == "/audio":
+    api.sendAudio(data["chat_id"], "files/audio.mp3")
+
+def photo(data, api):
+  if data["message_text"] == "/photo":
+    api.sendPhoto(data["chat_id"], "files/photo1.jpg")
+
+def file(data, api):
+  if data["message_text"] == "/file":
+    api.sendDocument(data["chat_id"], "files/file.txt")
+
+bot.add(start, help, audio, photo, file)
+bot.start()
+        </code></pre>
+        <p>
+          Разбор кода:<br>
+          Для начала мы подключаем библиотеку:<br>
+          <pre class="prettyprint"><code class="language-python">from app import Basic</code></pre>
+          Есть два вида работы с TelegramApi:<br>
+          - Обычный(Мы обращаемся к https://api.telegram.org/bot*/*methodname*)<br>
+          - И WebHook(Сервер Telegrama обращается с нашему серверу и передает данные)<br>
+          Для первого варианта мы используем класс "Basic" а для второго "Server"<br>
+          <pre class="prettyprint"><code class="language-python">bot - Basic()</code></pre>
+          Здесь мы создаем объект класса "Basic"
+        </p>
+        <pre class="prettyprint"><code class="language-python">
+def start(data, api):
+  if data["message_text"] == "/start":
+    api.sendMessage(data["chat_id"], "Write /help to get information with me!")
+
+def help(data, api):
+  if data["message_text"] == "/help":
+    api.sendMessage(data["chat_id"], "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document")
+
+def audio(data, api):
+  if data["message_text"] == "/audio":
+    api.sendAudio(data["chat_id"], "files/audio.mp3")
+
+def photo(data, api):
+  if data["message_text"] == "/photo":
+    api.sendPhoto(data["chat_id"], "files/photo1.jpg")
+
+def file(data, api):
+  if data["message_text"] == "/file":
+    api.sendDocument(data["chat_id"], "files/file.txt")
+
+bot.add(start, help, audio, photo, file)          
+        </code></pre>
+        <p>
+          Здесь мы создаем методы для обработки данных.<br>
+          Метод должен иметь 2 аргумента:<br>
+          - data(Данные которые мы получаем, например текст или id пользователя который обратился к боту)<br>
+          - api(Объект класса для работы с API Telegram'а включает большинство методов из официальной документации)<br>
+          после того как мы создали свой метод мы должны его добавить для дальнейшей работы с ним<br>
+          Для добавления используем метод .add().
+          <pre class="prettyprint"><code class="language-python">
+def test(data, api):
+  pass
+
+bot.add(test)
+        </code></pre>
+        После всех операций можно и запустить бота используя метод .start()<br>
+        <pre class="prettyprint"><code class="language-python">bot.start()</code></pre>
+        </p>
+      </div>
+      <div id="block">
+      <h3>Стандартные модули</h3>
+      <p>
+        На данный момент в библиотеке доступно 2 модуля:<br>
+        - visualKeyboard(Создание визуальной клавиатуры)<br>
+        - multiCommand(Команды в обычных и груповых чатах)<br>
+        <h4>Метод - multiCommand()</h5>
+        Пример использования:<br>
+        <pre class="prettyprint"><code class="language-python">
+from app.modules import multiCommand
+def start(data, api):
+  if multiCommand(data["message_text"], "/start"):
+    api.sendMessage(data["chat_id"], "Write /help to get information with me!")        
+        </code></pre>
+        После этого ваш бот сможет отвечать не только на /start но и на /start@botname
+        <h4>Метод - visualKeyboard()</h5>
+        Пример использования:<br>
+        <pre class="prettyprint"><code class="language-python">
+from app.modules import visualKeyboard
+def start(data, api):
+  if multiCommand(data["message_text"], "/start"):
+    keyboard = [
+      ["/help", "/audio"],
+      ["/photo", "/file"]
+    ]
+    api.sendMessage(data["chat_id"], "Write /help to get information with me!",
+      reply_markup = visualKeyboard(keyboard)
+    )        
+        </code></pre>
+        После вызова команды появится визуальная клавиатура.<br>
+        <img src="keyboard.jpg" width=350>
+      </p>
+      </div>
+      <div id="block">
+      <h3>Модульная система</h3>
+      <p>
+        В нашей библиотеке есть модульная система, она предназначена для реализации больших методов.<br>
+        Для добавления своего модуля есть метод .include()<br>
+        <pre class="prettyprint"><code class="language-python">
+bot.include([
+  "modules.test", # для процедурного стиля
+  ["modules.test", "Test"] # Если используете классы, ["путь к файлу", "Имя класса"]
+])
+        </code></pre>
+        Если используете процедурный стиль:<br>
+        <pre class="prettyprint"><code class="language-python">
+def update(data, api):
+  pass
+        </code></pre>
+        Название метода должно быть именно "update"<br>
+        <br>
+        Если используете классы:<br>
+        <pre class="prettyprint"><code class="language-python">
+class Test:
+  def __init__(self, init):
+    pass
+
+  def update(self, data, api):
+    pass
+        </code></pre>
+        Присутствие конструктора(__init__), и метода "update" обязательно!<br>
+        Аргумент init в конструкторе содержит данные "init.json"<br>
+      </p>
+      </div>
+      <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+    </main>
+  </body>
+</html>

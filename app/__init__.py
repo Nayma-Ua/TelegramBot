@@ -54,8 +54,8 @@ class BotModel:
     for module in self.modules:
       if type(module) is str:
         includeModule = import_module(module)
-        func = getattr(includeModule, "update")
-        func(data, self.API)
+        _def = getattr(includeModule, "update")
+        _def(data, self.API)
 
       if type(module) is list:
         includeModule = import_module(module[0])
