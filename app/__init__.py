@@ -1,4 +1,5 @@
 from app.libs.telegramBotApi      import Api
+
 from flask                        import Flask, request
 from json                         import loads, dumps
 from time                         import sleep
@@ -15,56 +16,31 @@ class BotModel:
 
     # Event modules
     self.modules = []
+    self.objModules = ()
 
     # Api lib
     self.API = Api(self.token)
 
-  def add(self, *methods):
-    self.methods += methods
+  def add(self, *data, _type="method"):
+    if _type == "method": self.methods += data
+    if _type == "module": self.objModules += data
 
-  def include(self, modules):
+  def require(self, modules):
     self.modules += modules
 
-  def runMethod(self, methods, update):
-    data = {
-      "chat_id": update["message"]["chat"]["id"],
-      "user_id": update["message"]["from"]["id"],
-      "message_id": update["message"]["message_id"]
-    }
-    if update["message"].get("text") != None:
-      data["message_text"] = update["message"]["text"]
-    else:
-      data["message_text"] = ""
-
-    if update["message"]["from"].get("username") != None:
-      data["username"] = update["message"]["from"]["username"]
-    else:
-      data["username"] = "*user login*"
-
-    if update["message"]["from"].get("last_name") != None:
-      data["last_name"] = update["message"]["from"]["last_name"]
-    else:
-      data["last_name"] = "*user lastname*"
-
-    if update["message"]["from"].get("first_name") != None:
-      data["first_name"] = update["message"]["from"]["first_name"]
-    else:
-      data["first_name"] = "*user firstname*"
-
+  def loadModules(self):
     for module in self.modules:
-      if type(module) is str:
-        includeModule = import_module(module)
-        _def = getattr(includeModule, "update")
-        _def(data, self.API)
+      includeModule = import_module(module[0])
+      _class = getattr(includeModule, module[1])
+      objClass = _class(self.init["data"])
+      self.add(objClass, _type="module")
 
-      if type(module) is list:
-        includeModule = import_module(module[0])
-        _class = getattr(includeModule, module[1])
-        objClass = _class(self.init)
-        objClass.update(data, self.API)
+  def runMethod(self, methods, update):
+    for module in self.objModules:
+      module.update(update, self.API)
 
     for method in methods:
-      method(data, self.API)
+      method(update, self.API)
 
   def log(self, text):
     print("[%s] [log] %s" % (self.name, text))
@@ -73,7 +49,7 @@ class BotModel:
 class Basic(BotModel):
   def __init__(self):
     # Load settings
-    openInit = open("init.json", "r")
+    openInit = open("manifest.json", "r", encoding="utf-8")
     self.init = loads(openInit.read())
     openInit.close()
 
@@ -85,14 +61,15 @@ class Basic(BotModel):
     self.limit = 10
 
   def checkUpdates(self):
-    for update in self.API.getUpdates(self.offset, self.limit):
+    for update in self.API.on("getUpdates", {"offset": self.offset, "limit": self.limit}):
       self.offset = update["update_id"] + 1
       try:
-        self.runMethod(self.methods, update)
+        self.runMethod(self.methods, update["message"])
       except Exception as err:
         self.log("[error] %s" % err)
 
   def start(self):
+    self.loadModules()
     while True:
       sleep(self.init["data"]["pause"])
       self.checkUpdates()
@@ -101,7 +78,7 @@ class Basic(BotModel):
 class Server(BotModel):
   def __init__(self):
     # Load settings
-    openInit = open("init.json", "r")
+    openInit = open("manifest.json", "r", encoding="utf-8")
     self.init = loads(openInit.read())
     openInit.close()
 
@@ -111,11 +88,12 @@ class Server(BotModel):
   def selectFunction(self):
     try:
       update = request.get_json(force=True)
-      self.runMethod(self.methods, update)
+      self.runMethod(self.methods, update["message"])
     except Exception as err:
       self.log("[error] %s" % err)
 
   def start(self):
+    self.loadModules()
     app = Flask(__name__)
     app.add_url_rule('/', view_func=self.selectFunction, methods=["GET", "POST"])
     app.run(host=self.init["ip"], port=self.init["port"])

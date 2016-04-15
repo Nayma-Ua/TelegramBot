@@ -36,7 +36,7 @@
 
       <div id="block">
         <h3>Быстрый старт</h3>
-        <p>Для того что-бы запустить своего бота вам нужно заполнить некоторые данные в файле "init.json"</p>
+        <p>Для того что-бы запустить своего бота вам нужно заполнить некоторые данные в файле "manifest.json"</p>
         <pre class="prettyprint"><code class="language-json">
 {
   "bot_name": "BotName",
@@ -69,25 +69,29 @@ from app import Basic
 
 bot = Basic()
 
+bot.require([
+  ["modules.test", "Test"]
+])
+
 def start(data, api):
-  if data["message_text"] == "/start":
-    api.sendMessage(data["chat_id"], "Write /help to get information with me!")
+  if data["text"] == "/start":
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "Write /help to get information with me!"})
 
 def help(data, api):
-  if data["message_text"] == "/help":
-    api.sendMessage(data["chat_id"], "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document")
+  if data["text"] == "/help":
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document"})
 
 def audio(data, api):
-  if data["message_text"] == "/audio":
-    api.sendAudio(data["chat_id"], "files/audio.mp3")
+  if data["text"] == "/audio":
+    api.on("sendAudio", {"chat_id": data["chat"]["id"], "path": "files/audio.mp3"})
 
 def photo(data, api):
-  if data["message_text"] == "/photo":
-    api.sendPhoto(data["chat_id"], "files/photo1.jpg")
+  if data["text"] == "/photo":
+    api.on("sendPhoto", {"chat_id": data["chat"]["id"], "path": "files/photo1.jpg"})
 
 def file(data, api):
-  if data["message_text"] == "/file":
-    api.sendDocument(data["chat_id"], "files/file.txt")
+  if data["text"] == "/file":
+    api.on("sendDocument", {"chat_id": data["chat"]["id"], "path": "files/file.txt"})
 
 bot.add(start, help, audio, photo, file)
 bot.start()
@@ -105,26 +109,26 @@ bot.start()
         </p>
         <pre class="prettyprint"><code class="language-python">
 def start(data, api):
-  if data["message_text"] == "/start":
-    api.sendMessage(data["chat_id"], "Write /help to get information with me!")
+  if data["text"] == "/start":
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "Write /help to get information with me!"})
 
 def help(data, api):
-  if data["message_text"] == "/help":
-    api.sendMessage(data["chat_id"], "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document")
+  if data["text"] == "/help":
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "This is help!\n My commands:\n /audio - send audio file\n /photo - send photo \n /file - send document"})
 
 def audio(data, api):
-  if data["message_text"] == "/audio":
-    api.sendAudio(data["chat_id"], "files/audio.mp3")
+  if data["text"] == "/audio":
+    api.on("sendAudio", {"chat_id": data["chat"]["id"], "path": "files/audio.mp3"})
 
 def photo(data, api):
-  if data["message_text"] == "/photo":
-    api.sendPhoto(data["chat_id"], "files/photo1.jpg")
+  if data["text"] == "/photo":
+    api.on("sendPhoto", {"chat_id": data["chat"]["id"], "path": "files/photo1.jpg"})
 
 def file(data, api):
-  if data["message_text"] == "/file":
-    api.sendDocument(data["chat_id"], "files/file.txt")
+  if data["text"] == "/file":
+    api.on("sendDocument", {"chat_id": data["chat"]["id"], "path": "files/file.txt"})
 
-bot.add(start, help, audio, photo, file)          
+bot.add(start, help, audio, photo, file)         
         </code></pre>
         <p>
           Здесь мы создаем методы для обработки данных.<br>
@@ -155,7 +159,7 @@ bot.add(test)
 from app.modules import multiCommand
 def start(data, api):
   if multiCommand(data["message_text"], "/start"):
-    api.sendMessage(data["chat_id"], "Write /help to get information with me!")        
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "Write /help to get information with me!"})  
         </code></pre>
         После этого ваш бот сможет отвечать не только на /start но и на /start@botname
         <h4>Метод - visualKeyboard()</h5>
@@ -168,9 +172,8 @@ def start(data, api):
       ["/help", "/audio"],
       ["/photo", "/file"]
     ]
-    api.sendMessage(data["chat_id"], "Write /help to get information with me!",
-      reply_markup = visualKeyboard(keyboard)
-    )        
+    api.on("sendMessage", {"chat_id": data["chat"]["id"], "text": "Write /help to get information with me!",
+      reply_markup = visualKeyboard(keyboard)})      
         </code></pre>
         После вызова команды появится визуальная клавиатура.<br>
         <img src="keyboard.jpg" width=350>
@@ -180,22 +183,14 @@ def start(data, api):
       <h3>Модульная система</h3>
       <p>
         В нашей библиотеке есть модульная система, она предназначена для реализации больших методов.<br>
-        Для добавления своего модуля есть метод .include()<br>
+        Для добавления своего модуля есть метод .require()<br>
         <pre class="prettyprint"><code class="language-python">
-bot.include([
-  "modules.test", # для процедурного стиля
-  ["modules.test", "Test"] # Если используете классы, ["путь к файлу", "Имя класса"]
+bot.require([
+  ["modules.test", "Test"]
 ])
         </code></pre>
-        Если используете процедурный стиль:<br>
         <pre class="prettyprint"><code class="language-python">
-def update(data, api):
-  pass
-        </code></pre>
-        Название метода должно быть именно "update"<br>
-        <br>
-        Если используете классы:<br>
-        <pre class="prettyprint"><code class="language-python">
+# file modules/test/__init__.py
 class Test:
   def __init__(self, init):
     pass
@@ -204,7 +199,7 @@ class Test:
     pass
         </code></pre>
         Присутствие конструктора(__init__), и метода "update" обязательно!<br>
-        Аргумент init в конструкторе содержит данные "init.json"<br>
+        Аргумент init в конструкторе содержит "data" данные "manifest.json"<br>
       </p>
       </div>
       <script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
